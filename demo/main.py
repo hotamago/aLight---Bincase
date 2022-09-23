@@ -5,8 +5,8 @@ import threading
 import time
 
 y = 1
-size_line = 50
-speedRender = 50
+size_line = 30
+speedRender = 30
 
 projector = 0
 def RunProjector():
@@ -16,7 +16,7 @@ def RunProjector():
   
 
   def update_frame():
-    global y, size_line, projector
+    global y, size_line, projector 
     projector.canvas.delete("all")
     # projector.canvas.create_rectangle(1,y,projector.screen_width,y + size_line, fill="black")
     y += speedRender
@@ -24,12 +24,12 @@ def RunProjector():
       y = 2
     projector.canvas.create_rectangle(1,y,projector.screen_width,y + size_line, fill="white")
     projector.canvas.update_idletasks()
-    projector.canvas.after(5)
-    projector.root.after(10, update_frame)
+    # projector.canvas.after(0)
+    projector.root.after(0, update_frame)
 
   update_frame()
 
-  # projector.root.attributes('-fullscreen', True)
+  projector.root.attributes('-fullscreen', True)
   projector.root.mainloop()
 
 def runCamera():

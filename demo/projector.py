@@ -32,10 +32,10 @@ class Projector:
     myframe.pack(fill=BOTH, expand=YES)
     
     #Get the current screen width and height
-    # self.screen_width = self.root.winfo_screenwidth()
-    # self.screen_height = self.root.winfo_screenheight()
-    self.screen_width = 500
-    self.screen_height = 500
+    self.screen_width = self.root.winfo_screenwidth()
+    self.screen_height = self.root.winfo_screenheight()
+    # self.screen_width = 300
+    # self.screen_height = 300
     
     self.canvas = Canvas(self.root, bd=-2, width=self.screen_width, hei=self.screen_height, bg="black")
     self.canvas.pack(fill=BOTH, expand=YES)
