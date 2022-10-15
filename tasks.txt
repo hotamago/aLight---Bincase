@@ -1,0 +1,47 @@
+-------------------------------------------------------
+start: ??/??/2022 | done: ??/??/2022 | status: Researching
+entity/camera.py - Add camera format Pi camera : Sơn
+	Điều khiển camera Pi cam
+
+-------------------------------------------------------
+start: ??/??/2022 | done: ??/??/2022 | status: waiting
+plugin/process-image-to-point.py - Init : ??
+	Xử lý hình ảnh thu từ camera để tìm vị trí của các điểm chạm cảm ứng (Dùng được opencv thì tốt)
+
+-------------------------------------------------------
+start: 15/10/2022 | done: ??/??/202? | status: processing
+plugin/logger.py - Init : Đạt
+	Đây là thằng cha của tất cả các plugin sau này. Dùng để hỗ trợ debug
+	Sẽ gồm các thành phần sau:
+		Log = print (Này thì có thể làm đơn giản, xong thêm màu mè vd: phần cấp lỗi, ... :V)
+		Log = file (Này quan trọng để sau sẽ lưu toàn bộ log ra file, và cần kiểm soát dụng lượng của file log này (lấy dung lượng giới hạn trong constants/default.py định danh MAX_SIZE_LOG_FILE, đơn vị MB), có thể tham khảo loguru)
+		Log = UI (Này tạm chưa code cũng được, định là dùng các cửa sổ thông thường để hiện các log phức tạp)
+		Log = API (Này là log bằng cách gửi request lên server nào đó với địa chỉ cho trước (Lấy URL API trong constants/api.py định danh LOGGER_API))
+			Code mẫu:
+				import http.client
+				conn = http.client.HTTPSConnection('eoldm90e3t999g2.m.pipedream.net')
+				conn.request("POST", "/", '{
+				  "test": "event"
+				}', {'Content-Type': 'application/json'})
+
+-------------------------------------------------------
+start: 15/10/2022 | done: ??/??/202? | status: processing		
+plugin/math.py - Chuẩn hóa math : Tri
+	Tri sẽ chuẩn hóa code theo rule, đặt tên class giống tên file.
+	Thay các hàm toán học bằng open cv nếu có thể
+	Rồi paste tiếp vô math.py (Trong đấy đang có sẵn hàm đổi hình dạng ảnh của mình), nếu có sử dụng các thư viện ngoài thì thêm vô requirements.txt
+
+-------------------------------------------------------
+start: ??/??/2022 | done: ??/??/2022 | status: done
+plugin/math.py - Perspective Transform Estimation : Sơn
+	Biến đổi các pixel trên một tứ giác thành pixel trên một hình chữ nhật bằng 4 điểm
+
+-------------------------------------------------------
+start: ??/??/2022 | done: ??/??/2022 | status: done
+entity/projector.py - Init : Sơn
+	Điều khiển máy chiếu
+
+-------------------------------------------------------
+start: ??/??/2022 | done: ??/??/2022 | status: done
+entity/camera.py - Init camera format webcame ip app : Sơn
+	Điều khiển camera điện thoại qua mạng lan
