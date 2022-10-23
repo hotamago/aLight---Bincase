@@ -2,6 +2,71 @@ from turtle import shape
 import numpy as np
 import cv2
 
+import math
+import numpy as np
+import cv2 as cv
+
+
+class Device:
+    """
+    Device Object, representing both the camera and the projector.
+    The methods and attributes are shared between the camera and the projector.
+    """
+    def __init__(self, focalLength=1, principalPoint=1, scanningVelocity=1, maxAngleOfObservation=math.pi/4) -> None:
+        """
+        TODO: List all the attributes and their detailed descriptions. 
+        """
+        self._f = focalLength; self._cy = principalPoint 
+        self._v = scanningVelocity; self._rangeOfObservation = maxAngleOfObservation
+    # List of properties
+    @property
+    def position_of_device(self) -> float: return self._positionOfDevice
+    @property
+    def f(self) -> float: return self._f
+    @property
+    def cy(self) -> float: return self._cy
+    @property
+    def v(self) -> float: return self._v
+    @property
+    def range_of_observation(self) -> float: return self._rangeOfObservation
+
+    # List of setter
+    @position_of_device.setter
+    def position_of_device(self, newPos): self._positionOfDevice = newPos
+    @f.setter
+    def f(self, newF): self._f = newF
+    @cy.setter
+    def cy(self, newCy): self._cy = newCy
+    @v.setter
+    def v(self, newV): self._v = newV
+    @range_of_observation.setter
+    def range_of_observation(self, newRange): self._rangeOfObservation = newRange
+
+class Projector(Device):
+    """
+    TODO: Give more details about Projector Object
+    """
+    def __init__(self, focalLength=1, principalPoint=1, scanningVelocity=1, maxAngleOfObservation=math.pi / 4) -> None:
+        super().__init__(focalLength, principalPoint, scanningVelocity, maxAngleOfObservation)
+
+class Camera(Device):
+    """
+    Camera Object, inherited from Device Object with 2 additional attributes
+        Time Delay (td): Pixel's clock delayed time
+        Exposure Time (te): Pixel's clock exposure time
+    """
+    def __init__(self, focalLength=1, principalPoint=1, scanningVelocity=1, maxAngleOfObservation=math.pi / 4, timeDelay = 0, timeExposure = 0) -> None:
+        super().__init__(focalLength, principalPoint, scanningVelocity, maxAngleOfObservation)
+        self._td = timeDelay; self._te = timeExposure
+    @property
+    def td(self) -> float: return self._td
+    @property
+    def te(self) -> float: return self._te
+    @td.setter
+    def td(self, newTd): self._td = newTd
+    @te.setter
+    def te(self, newTe): self._te = newTe
+
 class MatrixBincase:
   # def __init__():
     #nothing
