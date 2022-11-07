@@ -1,6 +1,127 @@
 from turtle import shape
 import numpy as np
 import cv2
+import math
+
+
+class Device:
+    """
+    Device Object, representing both the camera and the projector.
+    The methods and attributes are shared between the camera and the projector.
+    """
+    def __init__(self, focalLength: tuple, principalPoint: tuple, scanningVelocity: float, maxAngleOfObservation: float, \
+        rotationMatrix = np.array([[1,0,0],[0,1,0],[0,0,1]]), translationVector = np.array([[0,0,0]]).T) -> None:
+        """
+        List of attributes:
+        1. focalLength: tuple (fx, fy) where fx, fy are focal length of the device in x and y directions, respectively
+        2. principalPoint: tuple (cx, cy) where cx, cy are coordinates of the principal point
+        3. scanningVelocity: real number v, represents for the scanning velocity of the device
+        4. maxAngleOfObservation: a float number, represents for the range of observation of the device (in radian)
+        """
+        self._f = focalLength; self._c = principalPoint
+        self._v = scanningVelocity; self._rangeOfObservation = maxAngleOfObservation
+        self._intrinsicMatrix = np.array([[self._f[0], 0, self._c[0]], [0, self._f[1], self._c[1]], [0, 0, 1]])
+        self._rotationMatrix = rotationMatrix; self._translationVector = translationVector
+        self._extrinsicMatrix = np.concatenate((self._rotationMatrix, self._translationVector), axis = 1)
+    # List of properties
+    @property
+    def f(self) -> float: return self._f
+    @property
+    def c(self) -> float: return self._c
+    @property
+    def v(self) -> float: return self._v
+    @property
+    def range_of_observation(self) -> float: return self._rangeOfObservation
+    @property
+    def rotation_matrix(self): return self._rotationMatrix
+    @property
+    def translation_vector(self): return self._translationVector
+    # Read-only properties
+    @property
+    def intrinsic_matrix(self): return self._intrinsicMatrix
+    @property
+    def extrinsic_matrix(self): return self._extrinsicMatrix
+
+    # List of setter
+    @f.setter
+    def f(self, newF: tuple): 
+        self._f = newF
+        self._intrinsicMatrix = np.array([[self._f[0], 0, self._c[0]], [0, self._f[1], self._c[1]], [0, 0, 1]])
+    @c.setter
+    def c(self, newC: tuple): 
+        self._c = newC
+        self._intrinsicMatrix = np.array([[self._f[0], 0, self._c[0]], [0, self._f[1], self._c[1]], [0, 0, 1]])
+    @v.setter
+    def v(self, newV): self._v = newV
+    @range_of_observation.setter
+    def range_of_observation(self, newRange): self._rangeOfObservation = newRange
+    @rotation_matrix.setter
+    def rotation_matrix(self, newRotMat):
+        self._rotationMatrix = newRotMat
+        self._extrinsicMatrix = np.concatenate((self._rotationMatrix, self._translationVector), axis = 1)
+    @translation_vector.setter
+    def translation_vector(self, newTransVec):
+        self._translationVector = newTransVec
+        self._extrinsicMatrix = np.concatenate((self._rotationMatrix, self._translationVector), axis = 1)
+
+class Projector(Device):
+    """
+    TODO: Give more details about Projector Object
+    """
+    def __init__(self, focalLength: tuple, principalPoint: tuple, scanningVelocity: float, maxAngleOfObservation: float, \
+        rotationMatrix = np.array([[1,0,0],[0,1,0],[0,0,1]]), translationVector = np.array([[0,0,0]]).T) -> None:
+        super().__init__(self, focalLength, principalPoint, scanningVelocity, maxAngleOfObservation, rotationMatrix, translationVector)
+
+class Camera(Device):
+    """
+    Camera Object, inherited from Device Object with 2 additional attributes
+        Time Delay (td): Pixel's clock delayed time
+        Exposure Time (te): Pixel's clock exposure time
+    """
+    def __init__(self, focalLength: tuple, principalPoint: tuple, scanningVelocity: float, maxAngleOfObservation: float,\
+        rotationMatrix = np.array([[1,0,0],[0,1,0],[0,0,1]]), translationVector = np.array([[0,0,0]]).T,\
+        timeDelay = 0, timeExposure = 0) -> None:
+        super().__init__(self, focalLength, principalPoint, scanningVelocity, maxAngleOfObservation, rotationMatrix, translationVector)
+        self._td = timeDelay; self._te = timeExposure
+    @property
+    def td(self) -> float: return self._td
+    @property
+    def te(self) -> float: return self._te
+    @td.setter
+    def td(self, newTd): self._td = newTd
+    @te.setter
+    def te(self, newTe): self._te = newTe
+
+class TouchSurface():
+    def __init__(self, distanceFromOrigin: float, slope: float, thickness: float) -> None:
+        self._distanceFromOrigin = distanceFromOrigin; self._slope = slope; self._thickness = thickness
+    @property
+    def slope(self) -> float: return self._slope
+    @property
+    def distance_from_origin(self) -> float: return self._distanceFromOrigin
+    @property
+    def thickness(self) -> float: return self._thickness
+
+    @slope.setter
+    def slope(self, newSlope): self._slope = newSlope
+    @distance_from_origin.setter
+    def distance_from_origin(self, newDistance): self._distanceFromOrigin = newDistance
+    @thickness.setter
+    def thickness(self, newThickness): self._thickness = newThickness
+
+class Configuration:
+    def __init__(self, touchSurface: TouchSurface, projector: Projector, camera: Camera, distanceBetweenDevices) -> None:
+        self._touchSurface = touchSurface
+        self._projector = projector; self._camera = camera
+        self._b = distanceBetweenDevices
+        self._extrincis = np.array([[]])
+    @property
+    def b(self) -> float: return self._b
+    @b.setter
+    def b(self, newB): 
+        self._b = newB
+        self._projector.translation_vector(np.array([[0, -self._b/2, 0]]))
+        self._camera.translation_vector(np.array([[0, self._b/2, 0]]))
 
 class MatrixBincase:
   # def __init__():
