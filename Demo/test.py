@@ -9,6 +9,7 @@ from imageProcess import ImageProcessor
 import logging
 import threading
 import time
+# from data_struct.kd_tree import KdTree
 
 import pyautogui
 from pynput.mouse import Button, Controller
@@ -54,7 +55,8 @@ def onMouse(event, x, y, flags, param):
   mouseX, mouseY = x,y
   if event == cv2.EVENT_LBUTTONDOWN:
     print('pos(x,y) = (', mouseX, ",", mouseY, ')',sep='')
-    print('hsv = (', imageProcesser.get_hsv_pos(param[0], param[1],(mouseY, mouseX)), ')',sep='')
+    hsv_color = imageProcesser.get_hsv_pos(param[0], param[1],(mouseY, mouseX))
+    print('hsv = (', hsv_color[0],",", hsv_color[1],",", hsv_color[2] , ')',sep='')
 
 def sub1():
   global mouseX, mouseY, size_window
@@ -148,78 +150,182 @@ def sub1():
 
 def sub2():
   global mouseX, mouseY, size_window
-  camera = CameraWebIP("http://192.168.42.100:8080/shot.jpg", size_window)
+  camera = CameraWebIP("http://192.168.137.190:8080/shot.jpg", size_window)
   # camera = CameraSelf(size_window)
 
-  ro = (148,309)
-  x = (441,308)
-  y = (32,460)
-  z = (553,454)
+  maCam1 = ((2,53), (597,50), (2,318), (600,324))
+  ro = maCam1[0]
+  x = maCam1[1]
+  y = maCam1[2]
+  z = maCam1[3]
+
+  # Low dark
+  # imgFigueColor = [(5, 120, 150), (12, 255, 255)]
+  # Dark
+  imgFigueColor = [(5, 120, 160), (20, 255, 255)]
+  imgFigueShallowColor = [(5, 100, 20), (20, 200, 100)]
+
+  gamma = 0.8
+
+  BGKFake = False
 
   while True:
-    camera.updateFrame()
-    
-    img = matrixBincase.fast_tranform_image_opencv(camera.imgself, (ro, y, x, z), size_window)
 
-    # resultsFigue = detectHander.process(camera.imgself)
-    # list_pos_hands = detectHander.get_pos_hands(camera.imgself, resultsFigue)
-    # for i in range(len(list_pos_hands)):
-    #   list_pos_hands[i] = matrixBincase.tramform_points(list_pos_hands[i], (ro, y, x, z), size_window)
-    #   list_pos_hands[i] += (0, 10)
-    # print(len(list_pos_hands))
+    ### Pre process ###
+    camera.updateFrame()
+
+    imgCam1 = np.copy(camera.imgself)
+    img = matrixBincase.fast_tranform_image_opencv(imgCam1, (ro, y, x, z), size_window)
 
     # cv2.imshow("Camera processed", img)
-    imgDraw = matrixBincase.draw_line(np.copy(camera.imgself), ro, y, x, z, 3)
+    imgDraw = matrixBincase.draw_line(np.copy(imgCam1), ro, y, x, z, 3)
     cv2.circle(imgDraw, (mouseX, mouseY), 10, (255,0,0),-1)
-    cv2.imshow("Camera origan", imgDraw)
-    cv2.setMouseCallback('Camera origan',onMouse)
-
-    gamma = 0.5
-
-    imgFigue = imageProcesser.filter_Color(img, gamma, (5, 110, 140), (20, 200, 255))
-    # imgFigue = cv2.cvtColor(imgFigue, cv2.COLOR_GRAY2RGB)
+    if not BGKFake:
+      cv2.imshow("Camera origan", imgDraw)
+      cv2.setMouseCallback('Camera origan',onMouse, param=(imgCam1, gamma))
+    
+    ### imgFigue ###
+    imgFigue = imageProcesser.filter_Color(img, gamma, imgFigueColor[0], imgFigueColor[1])
+    imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, (5,5))
+    imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, (20,20))
+    contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    imgFigueDraw = cv2.cvtColor(imgFigue, cv2.COLOR_GRAY2RGB)
     # for i in range(len(list_pos_hands)):
     #   cv2.circle(imgFigue, list_pos_hands[i], 10, (255,0,0),-1)
-    cv2.imshow("Camera figue", imgFigue)
 
-    imgFigueShallow = imageProcesser.filter_Color(img, gamma, (5, 100, 20), (20, 200, 100))
-    # imgFigueShallow = cv2.cvtColor(imgFigueShallow, cv2.COLOR_GRAY2RGB)
+    hull_list = []
+    for i in range(len(contoursFigue)):
+      hull = cv2.convexHull(contoursFigue[i])
+      hull_list.append(hull)
+      cv2.drawContours(imgFigueDraw, hull_list, i, color = (255,0,0), thickness = 5)
+
+    # if len(contoursFigue) > 0:
+    #   dkd = np.vstack(contoursFigue).reshape(-1, 2)
+    #   hull = cv2.convexHull(dkd) 
+    #   hull = [hull]
+    #   cv2.drawContours(imgFigueDraw, hull, contourIdx = -1, color = (255,0,0), thickness = 10)
+    if not BGKFake:
+      cv2.drawContours(imgFigueDraw, contoursFigue, contourIdx = -1, color = (0,255,0), thickness = 3)
+      cv2.imshow("Camera figue", imgFigueDraw)
+
+    ### imgFigueShallow ###
+    imgFigueShallow = imageProcesser.filter_Color(img, gamma, imgFigueShallowColor[0], imgFigueShallowColor[1])
+    # imgFigueShallow = imageProcesser.image_noise_filter(imgFigueShallow, cv2.MORPH_CLOSE, (5,5))
+    # imgFigueShallow = imageProcesser.image_noise_filter(imgFigueShallow, cv2.MORPH_OPEN, (5,5))
+    contoursFigueShallow, hierarchyFigueShallow = cv2.findContours(imgFigueShallow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    imgFigueShallowDraw = cv2.cvtColor(imgFigueShallow, cv2.COLOR_GRAY2RGB)
     # for i in range(len(list_pos_hands)):
     #   cv2.circle(imgFigueShallow, list_pos_hands[i], 10, (255,0,0),-1)
-    cv2.imshow("Camera figue shallow", imgFigueShallow)
+    if not BGKFake:
+      cv2.drawContours(imgFigueShallowDraw, contoursFigueShallow, contourIdx = -1, color = (0,255,0), thickness = 3)
+      cv2.imshow("Camera figue shallow", imgFigueShallowDraw)
 
+    # print(len(contoursFigue), len(contoursFigueShallow))
+    # print(contoursFigue, contoursFigueShallow)
+      
+    ### Constance ###
+    maxRadiusFigueWithFigueShallow = 50
+    maxRadiusFigueContour = 30
+    deltaCntNoNear = 180
+    deltaPeCntNoNear = 90
+    isClicked = False
 
-    # # params for ShiTomasi corner detection
-    # feature_params = dict( maxCorners = 5,
-    #                       qualityLevel = 0.3,
-    #                       minDistance = 6,
-    #                       blockSize = 7 )
-    # # Parameters for lucas kanade optical flow
-    # lk_params = dict( winSize  = (15, 15),
-    #                   maxLevel = 3,
-    #                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-    # p0 = cv2.goodFeaturesToTrack(imgFigue, mask = None, **feature_params)
-    # p1, st, err = cv2.calcOpticalFlowPyrLK(imgFigue, imgFigueShallow, p0, None, **lk_params)
+    list_points_clicked = []
 
-    # # Select good points
-    # if p1 is not None:
-    #     good_new = p1[st==1]
-    #     good_old = p0[st==1]
-    # # draw the tracks
-    # mask, frame = np.zeros_like(img), np.copy(img)
-    # for i, (new, old) in enumerate(zip(good_new, good_old)):
-    #   a, b = new.ravel()
-    #   c, d = old.ravel()
-    #   mask = cv2.line(mask, (int(a), int(b)), (int(c), int(d)), (0, 255, 0), 2)
-    #   frame = cv2.circle(frame, (int(a), int(b)), 5, (0, 255, 0), -1)
-    # imgTest = cv2.add(frame, mask)
+    # maxContoursFigue = None
 
+    # print(type(contoursFigue), type(contoursFigueShallow))
+
+    ### Find fingue ###
+    list_highest_point_hull = []
+    # print(hull_list)
+    for hulls in hull_list:
+      highest_point_hull = max(hulls, key=lambda x: x[0][1])
+      list_highest_point_hull.append(highest_point_hull[0])
+
+    list_highest_point_hull.sort(key=lambda x: -x[1])
+    list_5_bestest_hull_point = []
+    cnt_5_bestest_hull_point = 3
+    for point in list_highest_point_hull:
+      list_5_bestest_hull_point.append(point)
+      cnt_5_bestest_hull_point-=1
+      if cnt_5_bestest_hull_point <= 0:
+        break
+      
+    ### Process all ###
+    if len(contoursFigue) > 0: # and len(contoursFigueShallow) > 0
+      contoursFigue = np.vstack(contoursFigue).reshape(-1, 2)
+      if len(contoursFigueShallow) > 0:
+        contoursFigueShallow = np.vstack(contoursFigueShallow).reshape(-1, 2)
+      else:
+        contoursFigueShallow = []
+      
+      # hull = cv2.convexHull(contoursFigue)
+      # hull = np.vstack(hull).reshape(-1, 2).tolist()
+      # # print(type(hull), hull.shape)
+      # hull.sort(key=lambda x: -x[1])
+      # cnt_5_bestest_hull_point = 5
+      # for point in hull:
+      #   list_5_bestest_hull_point.append(point)
+      #   cnt_5_bestest_hull_point-=1
+      #   if cnt_5_bestest_hull_point <= 0:
+      #     break
+
+      for point in list_5_bestest_hull_point:
+        cntNoNear = 0
+        if type(point) == 'numpy.intc':
+          print("WTF1??: ", point)
+          continue
+        if len(point) <= 1:
+          print("WTF2??: ", point)
+          continue
+        
+        list_nears_figures = []
+
+        if (point[0] + maxRadiusFigueContour <= size_window[0]) and (point[1]+ maxRadiusFigueContour <= size_window[1]):
+          for contourF in contoursFigue:
+            if type(contourF) == 'numpy.intc' or type(point) == 'numpy.intc':
+                continue
+            if len(contourF) <= 1 or len(point) <= 1:
+                continue
+            di = math.sqrt(math.pow(contourF[0] - point[0], 2) + math.pow(contourF[1] - point[1], 2))
+            if di <= maxRadiusFigueContour:
+              list_nears_figures.append(contourF)
+      
+        if len(list_nears_figures) > 0:
+          for contourF in list_nears_figures:
+            isHasNear = False
+            for contourFS in contoursFigueShallow:
+              if type(contourF) == 'numpy.intc' or type(contourFS) == 'numpy.intc':
+                print("WTF3??: ", contourF, ", ", contourFS)
+                continue
+              if len(contourF) <= 1 or len(contourFS) <= 1:
+                print("WTF4??: ", contourF, ", ", contourFS)
+                continue
+              di = math.sqrt(math.pow(contourF[0] - contourFS[0], 2) + math.pow(contourF[1] - contourFS[1], 2))
+              if di <= maxRadiusFigueWithFigueShallow:
+                isHasNear = True
+                break
+            if not isHasNear:
+              cntNoNear += 1
+              
+          # print(cntNoNear/len(list_nears_figures))
+          if cntNoNear/len(list_nears_figures) >= deltaPeCntNoNear/100:
+            list_points_clicked.append(point)
+            isClicked = True
+    
+    # if isClicked:
+    #   print("Clicked - ", cntNoNear)
+
+    ### TEST CAMERA ###
     imgTest = np.copy(img)
     imgTest = imageProcesser.get_hsv_image(imgTest, gamma)
-    # # for i in range(len(list_pos_hands)):
-    # #   cv2.circle(imgTest, list_pos_hands[i], 10, (255,0,0),-1)
+    for point in list_5_bestest_hull_point:
+      cv2.circle(imgTest, point, maxRadiusFigueContour, (0,255,0), -1, cv2.LINE_AA)
+    for point in list_points_clicked:
+      cv2.circle(imgTest, point, maxRadiusFigueContour, (255,0,0), -1, cv2.LINE_AA)
     cv2.imshow("Camera test", imgTest)
-    cv2.setMouseCallback("Camera test",onMouse)
+    cv2.setMouseCallback("Camera test",onMouse, param = (img, gamma))
 
     q = cv2.waitKey(1)
     if q == ord('q'):

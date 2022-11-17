@@ -27,3 +27,9 @@ class ImageProcessor:
     def get_hsv_pos(self, img, gamma, pos):
         hsv = self.get_hsv_image(img, gamma)
         return hsv[pos[0]][pos[1]]
+
+    # cv2.MORPH_CLOSE cv2.MORPH_OPEN
+    def image_noise_filter(self, img, type_filter, size, type_box = cv2.MORPH_RECT):
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, size)
+        img = cv2.morphologyEx(img, type_filter, kernel)
+        return img
