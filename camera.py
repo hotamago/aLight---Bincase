@@ -26,11 +26,22 @@ class CameraSelf:
   imgself = None
   success = False
   size_out = (600, 400)
+  is_flip = False
+  flip_mode = 0
   cap = None
-  def __init__(self, size_out = (600, 400)):
+  def __init__(self, size_out = (600, 400), exposure_value = 80, exposure_auto_value = 0):
     self.size_out = size_out
     self.cap = cv2.VideoCapture(0)
+    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, size_out[0])
+    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size_out[1])
+    self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, exposure_auto_value)
+    self.cap.set(cv2.CAP_PROP_EXPOSURE, exposure_value)
   def updateFrame(self):
     self.success, img = self.cap.read()
-    img_resize = cv2.resize(img,self.size_out)
-    self.imgself = img_resize
+    if self.success:
+      img_resize = cv2.resize(img,self.size_out)
+      self.imgself = img_resize
+      if self.is_flip:
+        self.imgself = cv2.flip(self.imgself, self.flip_mode)
+    else:
+      print("can't find camera")

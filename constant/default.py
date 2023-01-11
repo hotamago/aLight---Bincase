@@ -1,1 +1,0 @@
-MAX_SIZE_LOG_FILE = 3
