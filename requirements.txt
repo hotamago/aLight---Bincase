@@ -1,3 +1,8 @@
 numpy==1.23.3
 opencv-python==4.6.0.66
 urllib3==1.26.12
+<<<<<<< HEAD
+qrcode
+=======
+qrcode
+>>>>>>> 1f46d550106a9fbeef1b4b7f8d63565fc7f17b46
