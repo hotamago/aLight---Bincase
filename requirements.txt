@@ -1,5 +1,4 @@
 numpy==1.23.3
 opencv-python==4.6.0.66
 urllib3==1.26.12
-mediapipe==0.8.11
-qrcode==22.3
+qrcode

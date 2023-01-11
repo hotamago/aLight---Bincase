@@ -17,7 +17,7 @@ Bincase library
 from mathB import MatrixBincase
 from projector import Projector
 from camera import CameraWebIP, CameraSelf
-from detectB import DetectHander
+# from detectB import DetectHander
 from imageProcess import ImageProcessor
 from qrcodeB import QRCodeB
 
@@ -26,7 +26,7 @@ Init object
 """
 # 4, 8, 12, 16, 20
 # 8, 12, 16
-detectHander = DetectHander([8])
+# detectHander = DetectHander([8])
 
 mouse = Controller()
 matrixBincase = MatrixBincase()
