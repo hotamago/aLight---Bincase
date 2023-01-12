@@ -1,4 +1,3 @@
-from turtle import shape
 import numpy as np
 import cv2
 
@@ -59,40 +58,3 @@ class MatrixBincase:
     img = cv2.line(img, y, z, (255, 255, 255), size_line) #tl -> tr
     img = cv2.line(img, x, z, (255, 255, 255), size_line) #br -> tr
     return img
-
-# matrixBincase = MatrixBincase()
-
-# ro = (30,60)
-# y = (0, 800)
-# x = (500, 15)
-# z = (600, 800)
-
-# # blank_image = np.zeros((height,width,3), np.uint8)
-# # # img = cv2.imdecode(blank_image, -1)
-# # img = np.copy(blank_image)
-# # # img_600x400 = cv2.resize(img,(600,400))
-
-# imgProcess = cv2.imread("test.jpg", 0)
-# # resize image
-# imgProcess = cv2.resize(imgProcess, (600, 800), interpolation = cv2.INTER_AREA)
-
-# height, width = imgProcess.shape 
-# aw = 3
-# imgProcess = cv2.line(imgProcess, ro, y, (255, 255, 255), aw) #bl -> tl
-# imgProcess = cv2.line(imgProcess, ro, x, (255, 255, 255), aw) #bl -> br
-# imgProcess = cv2.line(imgProcess, y, z, (255, 255, 255), aw) #tl -> tr
-# imgProcess = cv2.line(imgProcess, x, z, (255, 255, 255), aw) #br -> tr
-
-# print(imgProcess.shape)
-# # cv2.imshow('Image test',imgProcess)
-
-# # xyzDemo = matrixBincase.find_coeffs((ro, y, x, z), ((0, 0), (0, height), (width, 0), (width, height)))
-# # imgFinal = matrixBincase.tranform_image_maxtrix(imgProcess, xyzDemo)
-
-# imgFinal2 = matrixBincase.fast_tranform_image_opencv(imgProcess, (ro, y, x, z), (width, height))
-# imgFinal = matrixBincase.slow_tranform_image(imgProcess, (ro, y, x, z), (width, height))
-
-# cv2.imshow('Processed image',imgFinal)
-# cv2.imshow('Processed image opencv',imgFinal2)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
