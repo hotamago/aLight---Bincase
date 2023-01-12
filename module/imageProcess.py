@@ -3,7 +3,7 @@ import numpy as np
 
 class ImageProcessor:
     def __init__(self):
-        print("Installed ImageProcessor")
+        pass
 
     def adjust_gamma(self, image, gamma):
         invGamma = 1.0 / gamma
