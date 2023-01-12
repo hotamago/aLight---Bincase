@@ -1,8 +1,7 @@
-numpy==1.23.3
-opencv-python==4.6.0.66
-urllib3==1.26.12
-PyAutoGUI
+numpy
+opencv-python
+urllib3
+pyautogui
 pynput
 tk
 qrcode
-ssl
