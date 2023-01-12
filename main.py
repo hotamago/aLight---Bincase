@@ -78,7 +78,7 @@ def sub1():
     camera1.is_flip = True
     camera1.flip_mode = -1
   if on_cam2:
-    camera2 = CameraWebIP("http://192.168.137.57:8080/shot.jpg", size_window)
+    camera2 = CameraWebIP("http://192.168.137.10:8080/shot.jpg", size_window)
 
   """
   Status system
@@ -123,12 +123,14 @@ def sub1():
     """
     Auto detect corners mode
     """
-    if is_detect_corners:
+    if not is_detect_corners:
+      showQRcorners()
       is_detect_corners_1, maCam1, maCam1YXZ = get4Corners(imgCam1, lambda x: (x[0], x[2], x[1], x[3]))
       is_detect_corners_2, maCam2, maCam2YXZ = get4Corners(imgCam2, lambda x: (x[0], x[2], x[1], x[3]))
 
       if is_detect_corners_1 and is_detect_corners_2:
         is_detect_corners = True
+        destroyQRcorners()
     else:
       """
       Config mode
@@ -180,6 +182,7 @@ def sub1():
       """
       Process, Caculate point
       """
+      list_5_bestest_hull_point = []
       if len(contoursFigue_cam1) > 0:
         list_highest_point_hull = []
         for hulls in contoursFigue_cam1:
@@ -187,7 +190,6 @@ def sub1():
           list_highest_point_hull.append(highest_point_hull[0])
 
         list_highest_point_hull.sort(key=lambda x: -x[1])
-        list_5_bestest_hull_point = []
         cnt_5_bestest_hull_point = n_points_touch
         for point in list_highest_point_hull:
           list_5_bestest_hull_point.append(point + delta_Point)
@@ -228,7 +230,7 @@ def sub1():
       if on_black_points_touch_screen:
         maxRadiusFigueContour = 10
         # imgFigueDraw = np.copy(imgCamFTI)
-        imgFigueDraw = np.zeros((size_window[0], size_window[1], 3))
+        imgFigueDraw = np.zeros((size_window[1], size_window[0], 3))
         index_contourF = 0
         for point in list_5_bestest_hull_point:
           if isClickedPoints[index_contourF]:
@@ -237,6 +239,7 @@ def sub1():
             cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, (0,255,0), -1, cv2.LINE_AA)
           index_contourF += 1
         imgFigueDraw = cv2.resize(imgFigueDraw, fullscreensize)
+        setFullScreenCV("Black points touch screen")
         cv2.imshow("Black points touch screen", imgFigueDraw)
       
       ### Smooth frame clicked ###

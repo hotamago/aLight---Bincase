@@ -73,18 +73,23 @@ def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, 
 
 # Auto detect corners
 imgQRcorners = qr.given_image_corners_qr(fullscreensize, core_value_qr)
+def setFullScreenCV(nameWindow):
+  cv2.namedWindow(nameWindow, cv2.WND_PROP_FULLSCREEN)
+  cv2.setWindowProperty(nameWindow, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+def showQRcorners():
+  """
+  Show QR code corners
+  """
+  setFullScreenCV("imgQRcorners")
+  cv2.imshow("imgQRcorners", imgQRcorners)
+def destroyQRcorners():
+  cv2.destroyWindow("imgQRcorners")
+  
 def get4Corners(imgCam, lambda_format_ma):
   global imgQRcorners
   maCam = ((0, 0), (0, 0), (0, 0), (0, 0))
   maCamYXZ = ((0, 0), (0, 0), (0, 0), (0, 0))
   is_detect_corners = False
-
-  """
-  Show QR code corners
-  """
-  cv2.namedWindow("imgQRcorners", cv2.WND_PROP_FULLSCREEN)
-  cv2.setWindowProperty("imgQRcorners", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-  cv2.imshow("imgQRcorners", imgQRcorners)
 
   """
   Detect corners by QR
@@ -113,5 +118,4 @@ def get4Corners(imgCam, lambda_format_ma):
   if is_detect_corners:
     maCam = tuple(maCam_beta)
     maCamYXZ = lambda_format_ma(maCam)
-    cv2.destroyWindow("imgQRcorners")
   return is_detect_corners, maCam, maCamYXZ
