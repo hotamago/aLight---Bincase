@@ -4,7 +4,7 @@ import cv2
 class MatrixBincase:
   #ma is matrix 2x3
   def __init__(self):
-    print("New MatrixBincase")
+    pass
   def find_coeffs(self, pa, pb):
     matrix = []
     for p1, p2 in zip(pa, pb):
