@@ -6,3 +6,4 @@ pynput
 tk
 qrcode
 pyzbar
+scikit-learn

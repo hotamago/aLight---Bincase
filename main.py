@@ -14,6 +14,8 @@ from pynput.mouse import Button, Controller
 from pyzbar.pyzbar import decode as detectAndDecodeQR
 from pyzbar.pyzbar import ZBarSymbol
 
+from sklearn.neighbors import KDTree
+
 """
 Bincase library
 """
@@ -210,12 +212,16 @@ def sub1():
       if len(contoursFigue_cam2) > 0:
         np_contours = np.vstack(contoursFigue_cam2).reshape(-1, 2)
         index_contourF = 0
+
+        kdtree = KDTree(np_contours, leaf_size=2)
+
         for contourF in list_5_bestest_hull_point:
           cntNear = 0
-          for contourFS in np_contours:
-            di = math.sqrt(math.pow(contourF[0] - contourFS[0], 2) + math.pow(contourF[1] - contourFS[1], 2))
-            if di <= maxRadiusFigueWithFigueShallow:
-              cntNear += 1
+          cntNear = kdtree.query_radius(contourF, r=maxRadiusFigueWithFigueShallow, count_only=True)
+          # for contourFS in np_contours:
+          #   di = math.sqrt(math.pow(contourF[0] - contourFS[0], 2) + math.pow(contourF[1] - contourFS[1], 2))
+          #   if di <= maxRadiusFigueWithFigueShallow:
+          #     cntNear += 1
           cntListNear[index_contourF][(indexAgven[index_contourF] - 1 + numEleArgvan) % numEleArgvan] = cntNear
           cntArgvanNear = np.sum(np.array(cntListNear[index_contourF]))/numEleArgvan
           if cntArgvanNear > deltaContoursClicked:
