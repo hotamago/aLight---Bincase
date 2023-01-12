@@ -5,3 +5,4 @@ pyautogui
 pynput
 tk
 qrcode
+pyzbar
