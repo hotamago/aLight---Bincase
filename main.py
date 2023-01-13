@@ -30,6 +30,8 @@ from config.main import *
 from constant.main import *
 from supportFun.main import *
 
+import module.smoothB as smoothB
+
 """
 Init object
 """
@@ -96,17 +98,26 @@ def sub1():
   is_detect_corners = False
 
   # Event mouse
-  curFamesClicked = 0
-  mouseComputer_old = (0, 0)
+  mousePos = smoothB.average_vecN_smooth(numAverageMouseMove)
 
   ### Smooth system ###
-  cntListNear = [[0] * numEleArgvan] * n_points_touch
-  indexAgven = [0] * n_points_touch
+  valueCntNear = [smoothB.average_smooth(numEleArgvan)] * n_points_touch
 
   """
   Loop frame
   """
+  FPP = 5
+  curFPP = 0
   while True:
+    """
+    Drop frame
+    """
+    curFPP += 1
+    if curFPP < FPP:
+      continue
+    else:
+      curFPP = 0
+
     """
     Update frame
     """
@@ -162,42 +173,28 @@ def sub1():
       """
       contoursFigue_cam1 = []
       if on_cam1:
-        ### Format variable ###
-        imgCam, maCamYXZ, gamma, fillCam_01, noseCam = imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1
-        on_show_cam, on_camHsv = on_show_cam1, on_cam1Hsv
-        title_on_show_cam, title_on_camHsv = "Camera test 1", "Camera 1 test hsv"
-
-        contoursFigue_cam1 = auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, title_on_show_cam, title_on_camHsv)
+        contoursFigue_cam1 = auto_ProcessImage(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, "Camera test 1", "Camera 1 test hsv")
 
       """
       Camera 2: Lan camera
       """
       contoursFigue_cam2 = []
       if on_cam2:
-        ### Format variable ###
-        imgCam, maCamYXZ, gamma, fillCam_01, noseCam = imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2
-        on_show_cam, on_camHsv = on_show_cam2, on_cam2Hsv
-        title_on_show_cam, title_on_camHsv = "Camera test 2", "Camera 2 test hsv"
-
-        contoursFigue_cam2 = auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, title_on_show_cam, title_on_camHsv)
+        contoursFigue_cam2 = auto_ProcessImage(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2, on_show_cam2, on_cam2Hsv, "Camera test 2", "Camera 2 test hsv")
       
       """
       Process, Caculate point
       """
       list_5_bestest_hull_point = []
       if len(contoursFigue_cam1) > 0:
-        list_highest_point_hull = []
-        for hulls in contoursFigue_cam1:
-          highest_point_hull = max(hulls, key=lambda x: x[0][1])
-          list_highest_point_hull.append(highest_point_hull[0])
+        list_highest_point_hull = contoursFigue_cam1.reshape((contoursFigue_cam1.shape[0], -1, 2)).max(axis = 1, where=[False, True])
+        # list_highest_point_hull = []
+        # for hulls in contoursFigue_cam1:
+        #   highest_point_hull = max(hulls, key=lambda x: x[0][1])
+        #   list_highest_point_hull.append(highest_point_hull[0])
 
         list_highest_point_hull.sort(key=lambda x: -x[1])
-        cnt_5_bestest_hull_point = n_points_touch
-        for point in list_highest_point_hull:
-          list_5_bestest_hull_point.append(point + delta_Point)
-          cnt_5_bestest_hull_point-=1
-          if cnt_5_bestest_hull_point <= 0:
-            break
+        list_5_bestest_hull_point = list_highest_point_hull[:n_points_touch] + delta_Point
 
       """
       Check clicked points touch
@@ -206,8 +203,7 @@ def sub1():
       isClickedPoints = [False] * len(list_5_bestest_hull_point)
 
       for i in range(0, n_points_touch):
-        cntListNear[i][indexAgven[i]] = 0
-        indexAgven[i] = (indexAgven[i] + 1) % numEleArgvan
+        valueCntNear[i].add(0)
 
       if len(contoursFigue_cam2) > 0:
         np_contours = np.vstack(contoursFigue_cam2).reshape(-1, 2)
@@ -222,12 +218,11 @@ def sub1():
           #   di = math.sqrt(math.pow(contourF[0] - contourFS[0], 2) + math.pow(contourF[1] - contourFS[1], 2))
           #   if di <= maxRadiusFigueWithFigueShallow:
           #     cntNear += 1
-          cntListNear[index_contourF][(indexAgven[index_contourF] - 1 + numEleArgvan) % numEleArgvan] = cntNear
-          cntArgvanNear = np.sum(np.array(cntListNear[index_contourF]))/numEleArgvan
+          valueCntNear[index_contourF].addPrev(cntNear)
+          cntArgvanNear = valueCntNear[index_contourF].getAverage()
           if cntArgvanNear > deltaContoursClicked:
             isClickedPoints[index_contourF] = True
             isClicked = True
-            # print("clicked - ", np_contours.shape[0])
           index_contourF += 1
       
       """
@@ -247,14 +242,6 @@ def sub1():
         imgFigueDraw = cv2.resize(imgFigueDraw, fullscreensize)
         setFullScreenCV("Black points touch screen")
         cv2.imshow("Black points touch screen", imgFigueDraw)
-      
-      ### Smooth frame clicked ###
-      # if curFamesClicked == 0:
-      #   curFamesClicked-=1
-      #   mouse.click(Button.left, 2)
-      #   # mouse.release(Button.left)
-      # else:
-      #   curFamesClicked-=1
 
       """
       Process UI, Control mouse or touchscreen
@@ -265,28 +252,20 @@ def sub1():
           pointMouseNow = list_5_bestest_hull_point[0]
           mouseComputer = (int(pointMouseNow[0]*width/size_window[0]), int(pointMouseNow[1]*height/size_window[1]))
 
-          if mouseComputer[0] > 0 and mouseComputer[1] > 0:
-            length = math.sqrt(pow(mouseComputer[0] - mouseComputer_old[0],2) + pow(mouseComputer[1] - mouseComputer_old[1],2))
-
-            velocityX = (mouseComputer[0] - mouseComputer_old[0]) / (length+1) * speed_smooth
-            velocityY = (mouseComputer[1] - mouseComputer_old[1]) / (length+1) * speed_smooth
-
-            mouse.position = (mouseComputer[0] + velocityX, mouseComputer[1] + velocityY)
+          if mouseComputer >= (0, 0):
+            mousePos.add(mouseComputer)
+            mouse.position = mousePos.getAverage()
             # # mouse.move(velocityX, velocityY)
             if isClicked:
-            #   # Press and release
-            #   # mouse.press(Button.left)
+              # Press and release
+              # mouse.press(Button.left)
               mouse.click(Button.left)
-              curFamesClicked = maxFamesClicked
 
-            #   # Double click; this is different from pressing and releasing
-            #   # twice on macOS
-            #   mouse.click(Button.left, 2)
+              # Double click
+              # mouse.click(Button.left, 2)
 
-            #   # Scroll two steps down
-            #   mouse.scroll(0, 2)
-
-            mouseComputer_old = mouse.position
+              # Scroll two steps down
+              # mouse.scroll(0, 2)
 
     """
     Exit action

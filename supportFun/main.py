@@ -56,7 +56,9 @@ def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, 
   imgFigue = imageProcesser.filter_Color(imgCamFTI, gamma, fillCam_01[0], fillCam_01[1])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, noseCam[0])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, noseCam[1])
-  contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+  # cv2.RETR_EXTERNAL - Get outside
+  # cv2.RETR_LIST - Get all
+  contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
   
   ### Debug mode ###
   if on_show_cam:

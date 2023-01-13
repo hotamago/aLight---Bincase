@@ -37,6 +37,6 @@ delta_Point = (0, 0)
 n_points_touch = 1
 deltaContoursClicked = 8
 maxRadiusFigueWithFigueShallow = 12
-numEleArgvan = 8
+numEleArgvan = 5
 
-speed_smooth = 6
+numAverageMouseMove = 3
