@@ -20,7 +20,7 @@ class average_smooth:
         return np.average(self._arr)
 
 class average_vecN_smooth:
-    _dim, _n = 0, 0, 0
+    _n, _dim = 0, 0
     _arr = []
     def __init__(self, n, dim = 2):
         self._n, self._dim = n, dim
