@@ -60,12 +60,15 @@ def onMouse(event, x, y, flags, param):
       list10Hsv.clear()
 
 # Detect hand
-def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, on_camHsv, on_camFTI, title_on_show_cam):
+def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, on_camYcbcr, on_camFTI, title_on_show_cam):
   ### Process image: Perspective, filter_color, filter_noise, findContours ###
   imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
+  """
   imgFigue = imageProcesser.filter_Color(imgCamFTI, gamma, fillCam_01[0], fillCam_01[1])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, noseCam[0])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, noseCam[1])
+  """
+  imgFigue = imageProcesser.detect_hand_v2(imgCamFTI, gamma, fillCam_01, noseCam)
   
   # cv2.RETR_EXTERNAL - Get outside
   # cv2.RETR_LIST - Get all
@@ -80,6 +83,10 @@ def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, 
     imgCamDraw = imageProcesser.get_hsv_image(np.copy(imgCamFTI), gamma)
     cv2.imshow(title_on_show_cam + "Hsv", imgCamDraw)
     cv2.setMouseCallback(title_on_show_cam + "Hsv", onMouse, param = (imgCamFTI, gamma))
+  if on_camYcbcr:
+    imgCamDraw = imageProcesser.get_ycbcr_image(np.copy(imgCamFTI), gamma)
+    cv2.imshow(title_on_show_cam + "Ycbcr", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "Ycbcr", onMouse, param = (imgCamFTI, gamma))
   if on_camFTI:
     imgCamDraw = np.copy(imgCamFTI)
     cv2.imshow(title_on_show_cam + "FTI", imgCamDraw)

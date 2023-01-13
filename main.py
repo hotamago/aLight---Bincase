@@ -46,48 +46,27 @@ detectQR = cv2.QRCodeDetector()
 qr = QRCodeB(version=qr_version, box_size=qr_box_size, border=qr_border)
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
+### Init camera ###
+if on_cam1:
+  camera1 = CameraWebIP(urlcam1, size_window)
+  # camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto, fps_cam1)
+  # camera1.is_flip = is_cam1_flip
+  # camera1.flip_mode = cam1_flip_mode
+if on_cam2:
+  # camera2 = CameraWebIP(urlcam2, size_window)
+  camera2 = CameraSelf(size_window, cam2_exposure, cam2_exposure_auto, fps_cam2)
+  camera2.is_flip = is_cam2_flip
+  camera2.flip_mode = cam2_flip_mode
+
 """
 Function main process
 """
-def RunProjector():
-  y, size_line, speedRender = 1, 30, 30
-
-  projector = Projector(fullscreensize)
-
-  def update_frame(y, size_line, speedRender):
-    projector.canvas.delete("all")
-    # projector.canvas.create_rectangle(0,0,projector.screen_width,projector.screen_height, fill="white")
-    y += speedRender
-    if y + size_line >= projector.screen_height:
-      y = 2
-    projector.canvas.create_rectangle(1,y,projector.screen_width,y + size_line, fill="white")
-
-    projector.canvas.update_idletasks()
-    #projector.canvas.after(10)
-    projector.root.after(0, update_frame)
-
-  update_frame(y, size_line, speedRender)
-
-  #projector.root.attributes('-fullscreen', True)
-  projector.root.mainloop()
-
-def sub1():
+def main_process():
   global size_window, fullscreensize
-  """
-  Init object
-  """
-  ### Init camera ###
-  if on_cam1:
-    camera1 = CameraWebIP(urlcam1, size_window)
-    # camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto)
-    # camera1.is_flip = is_cam1_flip
-    # camera1.flip_mode = cam1_flip_mode
-  if on_cam2:
-    # camera2 = CameraWebIP(urlcam2, size_window)
-    camera2 = CameraSelf(size_window, cam2_exposure, cam2_exposure_auto)
-    camera2.is_flip = is_cam2_flip
-    camera2.flip_mode = cam2_flip_mode
-
+  
+  camera1.startTheard()
+  camera2.startTheard()
+  
   """
   Status system
   """
@@ -106,13 +85,37 @@ def sub1():
 
   ### Smooth system ###
   valueCntNear = [smoothB.average_smooth(numEleArgvan)] * n_points_touch
-
+  
+  ### FPS system ###
+  start_time = time.time()
+  everyX = 1 # displays the frame rate every 1 second
+  counterFrame = 0
+  
   """
   Loop frame
   """
   FPP = FramePerProcess
   curFPP = 0
   while True:
+    """
+    Count FPS
+    """
+    counterFrame+=1
+    if (time.time() - start_time) > everyX :
+      if show_FPS_console:
+        print("FPS: ", counterFrame / (time.time() - start_time))
+      counterFrame = 0
+      start_time = time.time()
+      
+    """
+    Exit action
+    """
+    q = cv2.waitKey(1)
+    if q == ord('q') or camera1.stopped or camera2.stopped:
+      camera1.stop()
+      camera2.stop()
+      break
+    
     """
     Drop frame
     """
@@ -122,19 +125,11 @@ def sub1():
     else:
       curFPP = 0
 
-    """
-    Update frame
-    """
-    if on_cam1:
-      camera1.updateFrame()
-    if on_cam2:
-      camera2.updateFrame()
-
     ### Variable frame to image ###
     if on_cam1:
-      imgCam1 = camera1.imgself
+      imgCam1 = camera1.getFrame()
     if on_cam2:
-      imgCam2 = camera2.imgself
+      imgCam2 = camera2.getFrame()
       #imgCam2 = camera1.imgself
 
     """
@@ -142,10 +137,13 @@ def sub1():
     """
     if not is_detect_corners:
       showQRcorners()
-      is_detect_corners_1, maCam1, maCam1YXZ = get4Corners(imgCam1, lambda x: (x[0], x[2], x[1], x[3]))
-      is_detect_corners_2, maCam2, maCam2YXZ = get4Corners(imgCam2, lambda x: (x[0], x[2], x[1], x[3]))
+      is_detect_corners_1, is_detect_corners_2 = False, False
+      if on_cam1:
+        is_detect_corners_1, maCam1, maCam1YXZ = get4Corners(imgCam1, lambda x: (x[0], x[2], x[1], x[3]))
+      if on_cam2:
+        is_detect_corners_2, maCam2, maCam2YXZ = get4Corners(imgCam2, lambda x: (x[0], x[2], x[1], x[3]))
 
-      if is_detect_corners_1 and is_detect_corners_2:
+      if (is_detect_corners_1 or not on_cam1) and (is_detect_corners_2 or not on_cam2):
         is_detect_corners = True
         destroyQRcorners()
     else:
@@ -167,24 +165,27 @@ def sub1():
           cv2.imshow("Camera test 2", imgCam2Draw)
           cv2.setMouseCallback("Camera test 2", onMouse, param = (imgCam2, gamma2))
 
-        q = cv2.waitKey(1)
-        if q == ord('q'):
-          break
         continue
 
       """
-      Camera 1: Rasberry Pi Camera
+      Camera 1: Lan camera
       """
       contoursFigue_cam1 = []
       if on_cam1:
-        contoursFigue_cam1 = auto_ProcessImage(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, on_cam1FTI, "Camera test 1")
+        contoursFigue_cam1 = auto_ProcessImage(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, on_cam1Ycbcr, on_cam1FTI, "Camera test 1")
 
       """
-      Camera 2: Lan camera
+      Camera 2: Rasberry Pi Camera
       """
       contoursFigue_cam2 = []
       if on_cam2:
-        contoursFigue_cam2 = auto_ProcessImage(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2, on_show_cam2, on_cam2Hsv, on_cam2FTI, "Camera test 2")
+        contoursFigue_cam2 = auto_ProcessImage(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2, on_show_cam2, on_cam2Hsv, on_cam2Ycbcr, on_cam2FTI, "Camera test 2")
+      
+      """
+      Only for 2 cam activate
+      """
+      if (not on_cam1) or (not on_cam2):
+        continue
       
       """
       Process, Caculate point
@@ -243,7 +244,8 @@ def sub1():
           #     cntNear += 1
           valueCntNear[index_contourF].addPrev(cntNear)
           cntArgvanNear = valueCntNear[index_contourF].getAverage()
-          #print(cntArgvanNear)
+          if is_debug_clicked:
+            print(cntArgvanNear)
           if cntArgvanNear > deltaContoursClicked:
             isClickedPoints[index_contourF] = True
             isClicked = True
@@ -263,7 +265,8 @@ def sub1():
             cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, color_nonClicked, -1, cv2.LINE_AA)
           index_contourF += 1
         imgFigueDraw = cv2.resize(imgFigueDraw, fullscreensize)
-        setFullScreenCV("Black points touch screen")
+        if not is_debug_clicked:
+          setFullScreenCV("Black points touch screen")
         cv2.imshow("Black points touch screen", imgFigueDraw)
 
       """
@@ -293,40 +296,7 @@ def sub1():
 
               # Scroll two steps down
               # mouse.scroll(0, 2)
-
-    """
-    Exit action
-    """
-    q = cv2.waitKey(1)
-    if q == ord('q'):
-      break
-
 """
-Change between sub programing
+Run function main
 """
-def runCamera():
-  sub1() 
-
-"""
-Multi thead
-"""
-def RunMultiThead(taskRunner = (True, True)):
-  if taskRunner[0]:
-    t1 = threading.Thread(target=RunProjector, args=())
-  if taskRunner[1]:
-    t2 = threading.Thread(target=runCamera, args=())
-
-  if taskRunner[0]:
-    t1.start()
-  if taskRunner[1]:
-    t2.start()
-
-  if taskRunner[0]:
-    t1.join()
-  if taskRunner[1]:
-    t2.join()
-
-if is_multi_thead:
-  RunMultiThead((False, True))
-else:
-  runCamera()
+main_process()

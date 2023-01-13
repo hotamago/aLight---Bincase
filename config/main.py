@@ -14,27 +14,37 @@ Config camera main
 ### Mode ###
 on_cam1 = True
 on_cam2 = True
+
 on_cam1Hsv = False
 on_cam2Hsv = False
+on_cam1Ycbcr = False
+on_cam2Ycbcr = False
 on_cam1FTI = False
 on_cam2FTI = False
+
 on_config = False
 
 on_show_cam1 = False
 on_show_cam2 = False
-on_controller = True
+on_controller = False
 
-on_black_points_touch_screen = False
+on_black_points_touch_screen = True
 
 ### Config camera and detect ###
-gamma1 = 0.6
-gamma2 = 0.7
+gamma1 = 0.5
+gamma2 = 0.6
 
 noseCam1 = ((3, 3), (5, 5))
 noseCam2 = ((3, 3), (5, 5))
 
-fillCam1_01 = [(0, 90, 10), (35, 190, 150)]
-fillCam2_01 = [(0, 90, 10), (35, 190, 150)]
+fillCam1_01 = [[(0, 90, 10), (35,190,150)], [(0, 0, 0), (255,180,135)]]
+fillCam2_01 = [[(0, 90, 10), (35,190,150)], [(0, 0, 0), (255,180,135)]]
+
+# fillCam1_01 = [[(0, 15, 0), (35,170,255)], [(0, 135, 85), (255,180,135)]]
+# fillCam2_01 = [[(0, 15, 0), (35,170,255)], [(0, 135, 85), (255,180,135)]]
+
+# fillCam1_01 = [(0, 90, 10), (35, 190, 150)]
+# fillCam2_01 = [(0, 90, 10), (35, 190, 150)]
 
 is_cam1_flip = True
 is_cam2_flip = True
@@ -48,8 +58,11 @@ cam2_exposure, cam2_exposure_auto = 100, 0
 urlcam1 = "http://192.168.137.85:8080/shot.jpg"
 urlcam2 = "http://192.168.137.85:8080/shot.jpg"
 
+fps_cam1 = 8
+fps_cam2 = 15
+
 ### Config frame ###
-FramePerProcess = 1
+FramePerProcess = 2
 
 ### Config event mouse ###
 maxFamesClicked = 5
@@ -59,8 +72,10 @@ is_flip_mouse = True
 
 delta_Point = (0, 0)
 n_points_touch = 1
-deltaContoursClicked = 6
+deltaContoursClicked = 8
 maxRadiusFigueWithFigueShallow = 12
+
+is_debug_clicked = True
 
 numEleArgvan = 8
 numAverageMouseMove = 8
@@ -70,3 +85,5 @@ maxRadiusFigueContour = 10
 
 color_nonClicked = (0,255,0)
 color_clicked = (0,0,255)
+
+show_FPS_console = False
