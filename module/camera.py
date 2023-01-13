@@ -36,6 +36,11 @@ class CameraSelf:
     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size_out[1])
     self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, exposure_auto_value)
     self.cap.set(cv2.CAP_PROP_EXPOSURE, exposure_value)
+  def setProperty(self, cap_prop, value):
+    self.cap.set(cap_prop, value)
+  def setExposure(self, exposure_value, exposure_auto_value = 0):
+    self.setProperty(cv2.CAP_PROP_AUTO_EXPOSURE, exposure_auto_value)
+    self.setProperty(cv2.CAP_PROP_EXPOSURE, exposure_value)
   def updateFrame(self):
     self.success, img = self.cap.read()
     if self.success:

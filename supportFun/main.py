@@ -30,6 +30,7 @@ Main
 """
 mouseX, mouseY = 0,0
 list4Points = []
+list10Hsv = []
 def onMouse(event, x, y, flags, param):
   global mouseX, mouseY, list4Points
   mouseX, mouseY = x,y
@@ -39,6 +40,7 @@ def onMouse(event, x, y, flags, param):
     print('hsv = (', hsv_color[0],",", hsv_color[1],",", hsv_color[2] , ')',sep='')
 
     list4Points.append((mouseX, mouseY))
+    list10Hsv.append(hsv_color)
 
     if len(list4Points) >= 4:
       print('(', end = '', sep='')
@@ -48,14 +50,23 @@ def onMouse(event, x, y, flags, param):
           print(',', end = '', sep='')
       print(')')
       list4Points.clear()
+    if len(list10Hsv) >= 10:
+      print('(', end = '', sep='')
+      for i in range(0, 10):
+        print('(', list10Hsv[i][0], ',', list10Hsv[i][1], ',', list10Hsv[i][2], ')', end = '', sep='')
+        if i<9:
+          print(',', end = '', sep='')
+      print(')')
+      list10Hsv.clear()
 
 # Detect hand
-def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, on_camHsv, title_on_show_cam, title_on_camHsv):
+def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, on_camHsv, on_camFTI, title_on_show_cam):
   ### Process image: Perspective, filter_color, filter_noise, findContours ###
   imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
   imgFigue = imageProcesser.filter_Color(imgCamFTI, gamma, fillCam_01[0], fillCam_01[1])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, noseCam[0])
   imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, noseCam[1])
+  
   # cv2.RETR_EXTERNAL - Get outside
   # cv2.RETR_LIST - Get all
   contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -66,10 +77,13 @@ def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam,on_show_cam, 
     cv2.imshow(title_on_show_cam, imgFigueDraw)
     cv2.setMouseCallback(title_on_show_cam, onMouse, param = (imgCam, gamma))
   if on_camHsv:
-    #imgCamDraw = imageProcesser.get_hsv_image(np.copy(imgCamFTI), gamma)
+    imgCamDraw = imageProcesser.get_hsv_image(np.copy(imgCamFTI), gamma)
+    cv2.imshow(title_on_show_cam + "Hsv", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "Hsv", onMouse, param = (imgCamFTI, gamma))
+  if on_camFTI:
     imgCamDraw = np.copy(imgCamFTI)
-    cv2.imshow(title_on_camHsv, imgCamDraw)
-    cv2.setMouseCallback(title_on_camHsv, onMouse, param = (imgCamFTI, gamma))
+    cv2.imshow(title_on_show_cam + "FTI", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "FTI", onMouse, param = (imgCamFTI, gamma))
   
   return contoursFigue
 

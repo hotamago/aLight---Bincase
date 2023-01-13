@@ -44,6 +44,7 @@ matrixBincase = MatrixBincase()
 imageProcesser = ImageProcessor()
 detectQR = cv2.QRCodeDetector()
 qr = QRCodeB(version=qr_version, box_size=qr_box_size, border=qr_border)
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 """
 Function main process
@@ -77,12 +78,15 @@ def sub1():
   """
   ### Init camera ###
   if on_cam1:
-    # camera1 = CameraWebIP("http://192.168.137.190:8080/shot.jpg", size_window)
-    camera1 = CameraSelf(size_window, 100, 0)
-    camera1.is_flip = True
-    camera1.flip_mode = -1
+    camera1 = CameraWebIP(urlcam1, size_window)
+    # camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto)
+    # camera1.is_flip = is_cam1_flip
+    # camera1.flip_mode = cam1_flip_mode
   if on_cam2:
-    camera2 = CameraWebIP("http://192.168.137.10:8080/shot.jpg", size_window)
+    # camera2 = CameraWebIP(urlcam2, size_window)
+    camera2 = CameraSelf(size_window, cam2_exposure, cam2_exposure_auto)
+    camera2.is_flip = is_cam2_flip
+    camera2.flip_mode = cam2_flip_mode
 
   """
   Status system
@@ -106,7 +110,7 @@ def sub1():
   """
   Loop frame
   """
-  FPP = 5
+  FPP = FramePerProcess
   curFPP = 0
   while True:
     """
@@ -173,28 +177,47 @@ def sub1():
       """
       contoursFigue_cam1 = []
       if on_cam1:
-        contoursFigue_cam1 = auto_ProcessImage(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, "Camera test 1", "Camera 1 test hsv")
+        contoursFigue_cam1 = auto_ProcessImage(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, on_cam1FTI, "Camera test 1")
 
       """
       Camera 2: Lan camera
       """
       contoursFigue_cam2 = []
       if on_cam2:
-        contoursFigue_cam2 = auto_ProcessImage(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2, on_show_cam2, on_cam2Hsv, "Camera test 2", "Camera 2 test hsv")
+        contoursFigue_cam2 = auto_ProcessImage(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2, on_show_cam2, on_cam2Hsv, on_cam2FTI, "Camera test 2")
       
       """
       Process, Caculate point
       """
       list_5_bestest_hull_point = []
       if len(contoursFigue_cam1) > 0:
-        list_highest_point_hull = contoursFigue_cam1.reshape((contoursFigue_cam1.shape[0], -1, 2)).max(axis = 1, where=[False, True])
-        # list_highest_point_hull = []
-        # for hulls in contoursFigue_cam1:
-        #   highest_point_hull = max(hulls, key=lambda x: x[0][1])
-        #   list_highest_point_hull.append(highest_point_hull[0])
-
+        list_highest_point_hull = []
+        for hulls in contoursFigue_cam1:
+          highest_point_hull = max(hulls, key=lambda x: x[0][1])
+          list_highest_point_hull.append(highest_point_hull[0])
         list_highest_point_hull.sort(key=lambda x: -x[1])
-        list_5_bestest_hull_point = list_highest_point_hull[:n_points_touch] + delta_Point
+        cnt_5_bestest_hull_point = n_points_touch
+        for point in list_highest_point_hull:
+          list_5_bestest_hull_point.append(point + delta_Point)
+          cnt_5_bestest_hull_point-=1
+          if cnt_5_bestest_hull_point <= 0:
+            break
+        """
+        arr = np.array(contoursFigue_cam1)
+        if arr.ndim > 3:
+          arr = arr.reshape((arr.shape[0], -1, 2))
+          list_ele = arr.argmax(axis = 1)[0:,1]
+          list_highest_point_hull = arr[np.arange(arr.shape[0]), list_ele]
+
+          ind = list_highest_point_hull.argsort(axis = 0)[-n_points_touch:, 1]
+          list_5_bestest_hull_point = list_highest_point_hull[ind]
+          list_5_bestest_hull_point += delta_Point
+          list_5_bestest_hull_point = tuple(list_5_bestest_hull_point)
+        else:
+          #print(contoursFigue_cam1)
+          print(arr.shape)
+          print(arr)
+        """
 
       """
       Check clicked points touch
@@ -208,11 +231,11 @@ def sub1():
       if len(contoursFigue_cam2) > 0:
         np_contours = np.vstack(contoursFigue_cam2).reshape(-1, 2)
         index_contourF = 0
-
         kdtree = KDTree(np_contours, leaf_size=2)
 
         for contourF in list_5_bestest_hull_point:
           cntNear = 0
+          contourF = contourF.reshape(1, -1)
           cntNear = kdtree.query_radius(contourF, r=maxRadiusFigueWithFigueShallow, count_only=True)
           # for contourFS in np_contours:
           #   di = math.sqrt(math.pow(contourF[0] - contourFS[0], 2) + math.pow(contourF[1] - contourFS[1], 2))
@@ -220,6 +243,7 @@ def sub1():
           #     cntNear += 1
           valueCntNear[index_contourF].addPrev(cntNear)
           cntArgvanNear = valueCntNear[index_contourF].getAverage()
+          #print(cntArgvanNear)
           if cntArgvanNear > deltaContoursClicked:
             isClickedPoints[index_contourF] = True
             isClicked = True
@@ -229,15 +253,14 @@ def sub1():
       Mode: Black points touch screen
       """
       if on_black_points_touch_screen:
-        maxRadiusFigueContour = 10
         # imgFigueDraw = np.copy(imgCamFTI)
         imgFigueDraw = np.zeros((size_window[1], size_window[0], 3))
         index_contourF = 0
         for point in list_5_bestest_hull_point:
           if isClickedPoints[index_contourF]:
-            cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, (0,0,255), -1, cv2.LINE_AA)
+            cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, color_clicked, -1, cv2.LINE_AA)
           else:
-            cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, (0,255,0), -1, cv2.LINE_AA)
+            cv2.circle(imgFigueDraw, point, maxRadiusFigueContour, color_nonClicked, -1, cv2.LINE_AA)
           index_contourF += 1
         imgFigueDraw = cv2.resize(imgFigueDraw, fullscreensize)
         setFullScreenCV("Black points touch screen")
@@ -246,15 +269,19 @@ def sub1():
       """
       Process UI, Control mouse or touchscreen
       """
+      mousePos.add((0, 0))
       if on_cam1 and on_cam2 and on_controller:
         if len(list_5_bestest_hull_point) > 0:
           width, height = pyautogui.size()
           pointMouseNow = list_5_bestest_hull_point[0]
-          mouseComputer = (int(pointMouseNow[0]*width/size_window[0]), int(pointMouseNow[1]*height/size_window[1]))
+          if is_flip_mouse:
+            mouseComputer = (int(pointMouseNow[0]*width/size_window[0]), int(pointMouseNow[1]*height/size_window[1]))
+          else:
+            mouseComputer = (int(width - pointMouseNow[0]*width/size_window[0]), int(height - pointMouseNow[1]*height/size_window[1]))
 
           if mouseComputer >= (0, 0):
-            mousePos.add(mouseComputer)
-            mouse.position = mousePos.getAverage()
+            mousePos.addPrev(mouseComputer)
+            mouse.position = mouseComputer
             # # mouse.move(velocityX, velocityY)
             if isClicked:
               # Press and release
@@ -299,4 +326,7 @@ def RunMultiThead(taskRunner = (True, True)):
   if taskRunner[1]:
     t2.join()
 
-RunMultiThead((False, True))
+if is_multi_thead:
+  RunMultiThead((False, True))
+else:
+  runCamera()
