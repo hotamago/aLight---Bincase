@@ -39,6 +39,9 @@ def onMouse(event, x, y, flags, param):
     hsv_color = imageProcesser.get_hsv_pos(param[0], param[1],(mouseY, mouseX))
     print('hsv = (', hsv_color[0],",", hsv_color[1],",", hsv_color[2] , ')',sep='')
 
+    ycbcr_color = imageProcesser.get_ycbcr_pos(param[0], param[1],(mouseY, mouseX))
+    print('ycbcr = (', ycbcr_color[0],",", ycbcr_color[1],",", ycbcr_color[2] , ')',sep='')
+
     list4Points.append((mouseX, mouseY))
     list10Hsv.append(hsv_color)
 
