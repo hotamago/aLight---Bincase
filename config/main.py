@@ -26,12 +26,12 @@ on_config = False
 
 on_show_cam1 = False
 on_show_cam2 = False
-on_controller = False
+on_controller = True
 
-on_black_points_touch_screen = True
+on_black_points_touch_screen = False
 
 ### Config camera and detect ###
-gamma1 = 0.5
+gamma1 = 0.6
 gamma2 = 0.6
 
 noseCam1 = ((3, 3), (5, 5))
@@ -58,7 +58,7 @@ cam2_exposure, cam2_exposure_auto = 100, 0
 urlcam1 = "http://192.168.137.85:8080/shot.jpg"
 urlcam2 = "http://192.168.137.85:8080/shot.jpg"
 
-fps_cam1 = 8
+fps_cam1 = 30
 fps_cam2 = 15
 
 ### Config frame ###
@@ -75,10 +75,13 @@ n_points_touch = 1
 deltaContoursClicked = 8
 maxRadiusFigueWithFigueShallow = 12
 
-is_debug_clicked = True
+is_debug_clicked = False
 
 numEleArgvan = 8
 numAverageMouseMove = 8
+
+time_delay_press = 0.5
+time_delay_right_click = 1.5
 
 ### Config UI ###
 maxRadiusFigueContour = 10
