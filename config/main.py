@@ -13,10 +13,10 @@ Config camera main
 """
 ### Mode ###
 on_cam1 = True
-on_cam2 = True
+on_cam2 = True	
 
-on_cam1Hsv = False
-on_cam2Hsv = False
+on_cam1Hsv = True
+on_cam2Hsv = True
 on_cam1Ycbcr = False
 on_cam2Ycbcr = False
 on_cam1FTI = False
@@ -26,9 +26,11 @@ on_config = False
 
 on_show_cam1 = False
 on_show_cam2 = False
-on_controller = True
+on_controller = False
 
-on_black_points_touch_screen = False
+on_black_points_touch_screen = True
+
+on_debug = False
 
 ### Config camera and detect ###
 gamma1 = 0.6
@@ -46,8 +48,8 @@ fillCam2_01 = [[(0, 90, 10), (35,190,150)], [(0, 0, 0), (255,180,135)]]
 # fillCam1_01 = [(0, 90, 10), (35, 190, 150)]
 # fillCam2_01 = [(0, 90, 10), (35, 190, 150)]
 
-is_cam1_flip = True
-is_cam2_flip = True
+is_cam1_flip = False
+is_cam2_flip = False
 
 cam1_flip_mode = -1
 cam2_flip_mode = -1
@@ -55,8 +57,8 @@ cam2_flip_mode = -1
 cam1_exposure, cam1_exposure_auto = 100, 0
 cam2_exposure, cam2_exposure_auto = 100, 0
 
-urlcam1 = "http://192.168.137.85:8080/shot.jpg"
-urlcam2 = "http://192.168.137.85:8080/shot.jpg"
+urlcam1 = "http://192.168.137.192:8080/shot.jpg"
+urlcam2 = "http://192.168.137.192:8080/shot.jpg"
 
 fps_cam1 = 30
 fps_cam2 = 15

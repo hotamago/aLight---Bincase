@@ -158,7 +158,7 @@ def main_process():
         
         imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
         # imgFigue = imageProcesser.filter_Color(imgCamFTI, gamma, (150, 0, 0), (255, 255, 255))
-        imgFigue = cv2.inRange(imgCamFTI, (140, 140, 140), (255, 255, 255))
+        imgFigue = cv2.inRange(imgCamFTI, (90, 90, 90), (255, 255, 255))
         # imgFigue = imageProcesser.filter_Color_non(imgCamFTI, ((150, 150, 150), (255, 255, 255)))
         # imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, noseCam[0])
         # imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, noseCam[1])

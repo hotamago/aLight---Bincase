@@ -40,6 +40,7 @@ Init object
 # detectHander = DetectHander([8])
 
 mouse = Controller()
+
 matrixBincase = MatrixBincase()
 imageProcesser = ImageProcessor()
 detectQR = cv2.QRCodeDetector()
@@ -131,6 +132,19 @@ def main_process():
     if on_cam2:
       imgCam2 = camera2.getFrame()
       #imgCam2 = camera1.imgself
+    
+    """
+    Debug
+    """
+    if on_debug:
+      if on_cam1:
+        cv2.imshow("Camera test 1", imgCam1)
+        cv2.setMouseCallback("Camera test 1", onMouse, param = (imgCam1, gamma1))
+      
+      if on_cam2:
+        cv2.imshow("Camera test 2", imgCam2)
+        cv2.setMouseCallback("Camera test 2", onMouse, param = (imgCam2, gamma2))
+      continue
 
     """
     Auto detect corners mode
