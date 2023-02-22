@@ -5,6 +5,17 @@ class ImageProcessor:
     def __init__(self):
         pass
 
+    def undistort(self, img, mtx, dist, newcameramtx, roi):
+        # undistort
+        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+        # h,  w = img.shape[:2]
+        # mapx, mapy = cv2.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w,h), 5)
+        # dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
+        # crop the image
+        x, y, w, h = roi
+        dst = cv2.resize(dst[y:y+h, x:x+w], (w, h))
+        return dst
+
     def adjust_gamma(self, image, gamma):
         invGamma = 1.0 / gamma
         table = np.array([((i / 255.0) ** invGamma) * 255

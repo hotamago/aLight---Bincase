@@ -6,7 +6,17 @@ is_multi_thead = False
 """
 Config camera main
 """
-qr_version, qr_box_size, qr_border = 1, 12, 1
+num_image_cal = 15
+size_chess = (5, 5)
+corner_chess_size = (10, 10)
+qr_version, qr_box_size, qr_border = 1, 12, 10
+
+radius_c_chess = 80
+minDist = 60
+param1 = 220 #500
+param2 = 20 #200 #smaller value-> more false circles
+minRadius = 1
+maxRadius = 25 #10
 
 """
 Config camera main

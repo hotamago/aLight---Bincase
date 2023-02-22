@@ -145,3 +145,70 @@ def get4Corners(imgCam, lambda_format_ma):
     maCam = tuple(maCam_beta)
     maCamYXZ = lambda_format_ma(maCam)
   return is_detect_corners, maCam, maCamYXZ
+
+def get4Corners_chess(imgCam, size_chess, lambda_format_ma, delta_point = (25, 30)):
+  global imgQRcorners
+  maCam = ((0, 0), (0, 0), (0, 0), (0, 0))
+  maCamYXZ = ((0, 0), (0, 0), (0, 0), (0, 0))
+
+  gray = cv2.cvtColor(imgCam, cv2.COLOR_BGR2GRAY)
+  # Find the chess board corners
+  ret, points_beta = cv2.findChessboardCorners(gray, size_chess, flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_FAST_CHECK + cv2.CALIB_CB_NORMALIZE_IMAGE)
+  # print(points_beta.shape)
+  if ret == True:
+    points = np.array(list(map(lambda point: point[0], points_beta)))
+
+    rect = np.zeros((4, 2), dtype = "float32")
+
+    s = points.sum(axis = 1)
+    rect[0] = points[np.argmin(s)]
+    rect[3] = points[np.argmax(s)]
+
+    diff = np.diff(points, axis = 1)
+    rect[1] = points[np.argmin(diff)]
+    rect[2] = points[np.argmax(diff)]
+
+    rect += np.array([[-delta_point[0], -delta_point[1]], [delta_point[0], -delta_point[1]], [-delta_point[0], delta_point[1]], [delta_point[0], delta_point[1]]], dtype=np.float32)
+
+    maCam = tuple(rect)
+    maCamYXZ = lambda_format_ma(maCam)
+
+  return ret, maCam, maCamYXZ
+
+def get4Corners_circle(imgCam, lambda_format_ma, minDist, param1, param2, minRadius, maxRadius, delta_point = (25, 25)):
+  global imgQRcorners
+  maCam = ((0, 0), (0, 0), (0, 0), (0, 0))
+  maCamYXZ = ((0, 0), (0, 0), (0, 0), (0, 0))
+
+  gray = cv2.cvtColor(imgCam, cv2.COLOR_BGR2GRAY)
+  circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+  if (circles is not None) and circles[0].shape[0] >= 4:
+    circles = np.around(circles)
+    points_beta = circles[0]
+    points = np.array(list(map(lambda point: (point[0], point[1]), points_beta)))
+
+    rect = np.zeros((4, 2), dtype = "float32")
+
+    s = points.sum(axis = 1)
+    p_point = [np.argmin(s), 0, 0, np.argmax(s)]
+    rect[0] = points[np.argmin(s)]
+    rect[3] = points[np.argmax(s)]
+
+    diff = np.diff(points, axis = 1)
+    p_point[1] = np.argmin(diff)
+    p_point[2] = np.argmax(diff)
+    rect[1] = points[np.argmin(diff)]
+    rect[2] = points[np.argmax(diff)]
+
+    rect += np.array([
+      [-(delta_point[0] + points_beta[p_point[0]][2]), -(delta_point[1] + points_beta[p_point[0]][2])], 
+      [(delta_point[0] + points_beta[p_point[1]][2]), -(delta_point[1] + points_beta[p_point[1]][2])], 
+      [-(delta_point[0] + points_beta[p_point[2]][2]), (delta_point[1] + points_beta[p_point[2]][2])], 
+      [(delta_point[0] + points_beta[p_point[3]][2]), (delta_point[1] + points_beta[p_point[3]][2])]], 
+      dtype=np.float32)
+
+    maCam = tuple(rect)
+    maCamYXZ = lambda_format_ma(maCam)
+    return True, maCam, maCamYXZ
+    
+  return False, maCam, maCamYXZ
