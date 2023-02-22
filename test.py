@@ -48,9 +48,10 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 ### Init camera ###
 if on_cam1:
-  camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto, fps_cam1)
-  camera1.is_flip = is_cam1_flip
-  camera1.flip_mode = cam1_flip_mode
+  # camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto, fps_cam1)
+  # camera1.is_flip = is_cam1_flip
+  # camera1.flip_mode = cam1_flip_mode
+  camera1 = CameraWebIP("http://192.168.137.151:8080/shot.jpg", size_window)
 
 """
 Function main process
