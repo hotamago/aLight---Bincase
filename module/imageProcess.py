@@ -8,12 +8,13 @@ class ImageProcessor:
     def undistort(self, img, mtx, dist, newcameramtx, roi):
         # undistort
         dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-        # h,  w = img.shape[:2]
-        # mapx, mapy = cv2.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w,h), 5)
-        # dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
+        h_og,  w_og = img.shape[:2]
+        # ~ mapx, mapy = cv2.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w_og,h_og), 5)
+        # ~ dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
         # crop the image
         x, y, w, h = roi
-        dst = cv2.resize(dst[y:y+h, x:x+w], (w, h))
+        # ~ dst = dst[y:y+h, x:x+w]
+        dst = cv2.resize(dst[y:y+h, x:x+w], (w_og, h_og))
         return dst
 
     def adjust_gamma(self, image, gamma):

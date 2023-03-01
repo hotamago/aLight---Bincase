@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 
 class PatternMaker:
-    def __init__(self, cols, rows, width, height, conner_size = (5, 5)):
+    def __init__(self, cols, width, height, conner_size = (5, 5)):
         self.cols = cols
-        self.rows = rows
+        self.rows = -1
         self.width = width
         self.height = height
         self.conner_size = conner_size
@@ -24,7 +24,9 @@ class PatternMaker:
         xspacing = self.conner_size[0] // 2
         yspacing = self.conner_size[1] // 2
         size_x_q = (self.width - self.conner_size[0]) // self.cols
-        size_y_q = (self.height - self.conner_size[1]) // self.rows
+        # ~ size_y_q = (self.height - self.conner_size[1]) // self.rows
+        size_y_q = size_x_q
+        self.rows = int((self.height - self.conner_size[1]) // size_y_q)
 
         for x in range(-1, self.cols + 1):
             for y in range(-1, self.rows + 1):
@@ -37,3 +39,6 @@ class PatternMaker:
 
     def get(self):
         return self.g
+    
+    def get_size_chess(self):
+        return [self.cols - 1, self.rows - 1]

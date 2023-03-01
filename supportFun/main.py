@@ -63,6 +63,48 @@ def onMouse(event, x, y, flags, param):
       list10Hsv.clear()
 
 # Detect hand
+def auto_ProcessImage_onlyhand(imgCam, maCamYXZ, gamma, fillCam_01, noseCam):
+  ### Process image: Perspective, filter_color, filter_noise, findContours ###
+  imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
+  imgFigue = imageProcesser.detect_hand_v2(imgCamFTI, gamma, fillCam_01, noseCam)
+  return imgFigue
+  
+def auto_ProcessImage_onlyfti(imgCam, maCamYXZ):
+  ### Process image: Perspective, filter_color, filter_noise, findContours ###
+  imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
+  return imgCamFTI
+
+# Detect hand
+def auto_ProcessImage_nofti(imgCam, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, on_camYcbcr, on_camFTI, title_on_show_cam):
+  ### Process image: Perspective, filter_color, filter_noise, findContours ###
+  imgCamFTI = np.copy(imgCam)
+  imgFigue = imageProcesser.detect_hand_v2(imgCamFTI, gamma, fillCam_01, noseCam)
+  
+  # cv2.RETR_EXTERNAL - Get outside
+  # cv2.RETR_LIST - Get all
+  contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+  
+  ### Debug mode ###
+  if on_show_cam:
+    imgFigueDraw = cv2.cvtColor(imgFigue, cv2.COLOR_GRAY2RGB)
+    cv2.imshow(title_on_show_cam, imgFigueDraw)
+    cv2.setMouseCallback(title_on_show_cam, onMouse, param = (imgCam, gamma))
+  if on_camHsv:
+    imgCamDraw = imageProcesser.get_hsv_image(np.copy(imgCamFTI), gamma)
+    cv2.imshow(title_on_show_cam + "Hsv", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "Hsv", onMouse, param = (imgCamFTI, gamma))
+  if on_camYcbcr:
+    imgCamDraw = imageProcesser.get_ycbcr_image(np.copy(imgCamFTI), gamma)
+    cv2.imshow(title_on_show_cam + "Ycbcr", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "Ycbcr", onMouse, param = (imgCamFTI, gamma))
+  if on_camFTI:
+    imgCamDraw = np.copy(imgCamFTI)
+    cv2.imshow(title_on_show_cam + "FTI", imgCamDraw)
+    cv2.setMouseCallback(title_on_show_cam + "FTI", onMouse, param = (imgCamFTI, gamma))
+  
+  return contoursFigue
+
+# Detect hand
 def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, on_camYcbcr, on_camFTI, title_on_show_cam):
   ### Process image: Perspective, filter_color, filter_noise, findContours ###
   imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
@@ -111,7 +153,7 @@ def showQRcorners():
 def destroyQRcorners():
   cv2.destroyWindow("imgQRcorners")
   
-def get4Corners(imgCam, lambda_format_ma):
+def get4Corners(imgCam, lambda_format_ma, delta_point = (0, 0)):
   global imgQRcorners
   maCam = ((0, 0), (0, 0), (0, 0), (0, 0))
   maCamYXZ = ((0, 0), (0, 0), (0, 0), (0, 0))
@@ -142,6 +184,13 @@ def get4Corners(imgCam, lambda_format_ma):
   if list_is_detect_corners.count(True) == 4:
     is_detect_corners = True
   if is_detect_corners:
+    maCam_beta += np.array([
+      [-(delta_point[0]), -(delta_point[1])], 
+      [(delta_point[0]), -(delta_point[1])], 
+      [-(delta_point[0]), (delta_point[1])], 
+      [(delta_point[0]), (delta_point[1])]], 
+      dtype=np.float32)
+      
     maCam = tuple(maCam_beta)
     maCamYXZ = lambda_format_ma(maCam)
   return is_detect_corners, maCam, maCamYXZ
@@ -176,7 +225,6 @@ def get4Corners_chess(imgCam, size_chess, lambda_format_ma, delta_point = (25, 3
   return ret, maCam, maCamYXZ
 
 def get4Corners_circle(imgCam, lambda_format_ma, minDist, param1, param2, minRadius, maxRadius, delta_point = (25, 25)):
-  global imgQRcorners
   maCam = ((0, 0), (0, 0), (0, 0), (0, 0))
   maCamYXZ = ((0, 0), (0, 0), (0, 0), (0, 0))
 
@@ -212,3 +260,27 @@ def get4Corners_circle(imgCam, lambda_format_ma, minDist, param1, param2, minRad
     return True, maCam, maCamYXZ
     
   return False, maCam, maCamYXZ
+
+def increase_brightness(img, value=30):
+  hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+  h, s, v = cv2.split(hsv)
+
+  lim = 255 - value
+  v[v > lim] = 255
+  v[v <= lim] += value
+
+  final_hsv = cv2.merge((h, s, v))
+  img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+  return img
+  
+def decrease_brightness(img, value=30):
+  hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+  h, s, v = cv2.split(hsv)
+
+  lim = value
+  v[v < lim] = 0
+  v[v >= lim] -= value
+
+  final_hsv = cv2.merge((h, s, v))
+  img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+  return img

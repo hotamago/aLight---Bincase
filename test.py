@@ -48,10 +48,10 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 ### Init camera ###
 if on_cam1:
-  # camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto, fps_cam1)
-  # camera1.is_flip = is_cam1_flip
-  # camera1.flip_mode = cam1_flip_mode
-  camera1 = CameraWebIP("http://192.168.137.151:8080/shot.jpg", size_window)
+  camera1 = CameraSelf(size_window, cam1_exposure, cam1_exposure_auto, fps_cam1)
+  camera1.is_flip = is_cam1_flip
+  camera1.flip_mode = cam1_flip_mode
+  # camera1 = CameraWebIP("http://192.168.137.151:8080/shot.jpg", size_window)
 
 """
 Function main process
@@ -133,7 +133,7 @@ def main_process():
         is_detect_corners_1, maCam1, maCam1YXZ = get4Corners(imgCam1, lambda x: (x[0], x[2], x[1], x[3]))
         
       if (is_detect_corners_1 or not on_cam1):
-        camera1.setExposure(0, 1)
+        camera1.setExposure(10, 1)
         is_detect_corners = True
         destroyQRcorners()
     else:
@@ -158,11 +158,8 @@ def main_process():
         imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam, on_camHsv, on_camYcbcr, on_camFTI, title_on_show_cam = imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1, on_show_cam1, on_cam1Hsv, on_cam1Ycbcr, on_cam1FTI, "Camera test 1"
         
         imgCamFTI = matrixBincase.fast_tranform_image_opencv(imgCam, maCamYXZ, size_window)
-        # imgFigue = imageProcesser.filter_Color(imgCamFTI, gamma, (150, 0, 0), (255, 255, 255))
-        imgFigue = cv2.inRange(imgCamFTI, (90, 90, 90), (255, 255, 255))
-        # imgFigue = imageProcesser.filter_Color_non(imgCamFTI, ((150, 150, 150), (255, 255, 255)))
-        # imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_CLOSE, noseCam[0])
-        # imgFigue = imageProcesser.image_noise_filter(imgFigue, cv2.MORPH_OPEN, noseCam[1])
+        # ~ imgFigue = cv2.inRange(imgCamFTI, (90, 90, 90), (255, 255, 255))
+        imgFigue = cv2.inRange(imgCamFTI, (0, 0, 100), (255, 255, 255))
         
         # cv2.RETR_EXTERNAL - Get outside
         # cv2.RETR_LIST - Get all
@@ -237,6 +234,7 @@ def main_process():
       if on_black_points_touch_screen:
         # imgFigueDraw = np.copy(imgCamFTI)
         imgFigueDraw = np.zeros((size_window[1], size_window[0], 3))
+        imgFigueDraw.fill(255)
         index_contourF = 0
         for point in list_5_bestest_hull_point:
           if isClickedPoints[index_contourF]:

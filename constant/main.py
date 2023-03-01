@@ -9,6 +9,8 @@ Init constant
 # Screen
 # fullscreensize = (1024, 740)
 fullscreensize = pyautogui.size()
+# ~ size_window = (640, 480)
+# ~ size_window = (800, 400)
 size_window = (640, 480)
 delta_point = 10
 

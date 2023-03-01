@@ -16,6 +16,8 @@ from pyzbar.pyzbar import ZBarSymbol
 
 from sklearn.neighbors import KDTree
 
+from matplotlib import pyplot as plt
+
 """
 Bincase library
 """
@@ -46,6 +48,7 @@ imageProcesser = ImageProcessor()
 detectQR = cv2.QRCodeDetector()
 qr = QRCodeB(version=qr_version, box_size=qr_box_size, border=qr_border)
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+stereo = cv2.StereoBM_create(numDisparities=numDisparitiesDepth, blockSize=blockSizeDepth)
 
 ### Init camera ###
 if on_cam1:
@@ -65,8 +68,10 @@ Function main process
 def main_process():
   global size_window, fullscreensize
   
-  camera1.startTheard()
-  camera2.startTheard()
+  if on_cam1:
+    camera1.startTheard()
+  if on_cam2:
+    camera2.startTheard()
   
   """
   Status system
@@ -112,9 +117,11 @@ def main_process():
     Exit action
     """
     q = cv2.waitKey(1)
-    if q == ord('q') or camera1.stopped or camera2.stopped:
-      camera1.stop()
-      camera2.stop()
+    if q == ord('q') or (on_cam1 and camera1.stopped) or (on_cam2 and camera2.stopped):
+      if on_cam1:
+        camera1.stop()
+      if on_cam2:
+        camera2.stop()
       break
     
     """
@@ -200,6 +207,29 @@ def main_process():
       """
       if (not on_cam1) or (not on_cam2):
         continue
+      
+      imgCamFTI1 = auto_ProcessImage_onlyfti(imgCam1, maCam1YXZ) #, gamma1, fillCam1_01, noseCam1)
+      imgCamFTI2 = auto_ProcessImage_onlyfti(imgCam2, maCam2YXZ) #, gamma2, fillCam2_01, noseCam2)
+      
+      imgCamFTI1Mask = auto_ProcessImage_onlyhand(imgCam1, maCam1YXZ, gamma1, fillCam1_01, noseCam1)
+      imgCamFTI2Mask = auto_ProcessImage_onlyhand(imgCam2, maCam2YXZ, gamma2, fillCam2_01, noseCam2)
+      
+      imgCamFTI1gray = cv2.cvtColor(imgCamFTI1, cv2.COLOR_BGR2GRAY)
+      imgCamFTI2gray = cv2.cvtColor(imgCamFTI2, cv2.COLOR_BGR2GRAY)
+      
+      res1 = cv2.bitwise_and(imgCamFTI1gray, imgCamFTI1gray, mask=imgCamFTI1Mask)
+      res2 = cv2.bitwise_and(imgCamFTI2gray, imgCamFTI2gray, mask=imgCamFTI2Mask)
+      
+      kernel = np.ones((3, 3), np.float32)/9
+      res1 = cv2.filter2D(res1, -1, kernel)
+      res2 = cv2.filter2D(res2, -1, kernel)
+      
+      disparity = stereo.compute(res1, res2)
+      norm_disparity = cv2.normalize(disparity, None, 10, 245, cv2.NORM_MINMAX)
+      color_disparity = cv2.applyColorMap(norm_disparity.astype(np.uint8), cv2.COLORMAP_HSV)
+      bul_map = cv2.addWeighted(res1, 0.5, res2, 0.5, 0)
+      cv2.imshow("Debug 1", color_disparity)
+      cv2.imshow("Debug 2", bul_map)
       
       """
       Process, Caculate point
