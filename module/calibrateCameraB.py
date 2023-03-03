@@ -4,6 +4,7 @@ import numpy as np
 class Calibration():
     def __init__(self, size_chess, num_image_cal = 15):
         self.size_chess = size_chess
+        self.origin_num_image_cal = num_image_cal
         self.num_image_cal = num_image_cal
 
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -46,4 +47,7 @@ class Calibration():
     def get(self):
         return self.mtx, self.dist, self.newcameramtx, self.roi
           
-        
+    def reset(self):
+        self.num_image_cal = self.origin_num_image_cal
+        self.done = False
+        return True

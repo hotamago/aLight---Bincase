@@ -38,12 +38,16 @@ class MatrixBincase:
           continue
         imgFinal[i][j] = img[int(newYX[0])][int(newYX[1])]
     return imgFinal
-  def tramform_points(self, pos, po4, wh):
+  def tramform_points(self, pos, po4, wh, mode = 0):
     M = cv2.getPerspectiveTransform(np.float32(po4), np.float32(((0, 0), (0, wh[1]), (wh[0], 0), (wh[0], wh[1]))))
     # ma = np.linalg.inv(M)
     newXY = self.tranform_from_matrix(pos, M)
     newYX = np.array([int(newXY[0]), int(newXY[1])])
-    return newYX
+    if mode == 0:
+        return newYX
+    elif mode == 1:
+        return np.array([int(newXY[1]), int(newXY[0])])
+    return None
   def slow_tranform_image(self, img, po4, wh):
     M = self.find_coeffs(po4, ((0, 0), (0, wh[1]), (wh[0], 0), (wh[0], wh[1])))
     imgFinal = self.tranform_image_maxtrix(img, M)

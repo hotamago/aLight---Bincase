@@ -25,7 +25,7 @@ Config camera main
 on_cam1 = True
 on_cam2 = True	
 
-on_cam1Hsv = False
+on_cam1Hsv = True
 on_cam2Hsv = False
 on_cam1Ycbcr = False
 on_cam2Ycbcr = False
@@ -38,7 +38,8 @@ on_show_cam1 = False
 on_show_cam2 = False
 on_controller = False
 
-on_black_points_touch_screen = True
+on_black_points_touch_screen = False
+on_paint_test = True
 
 on_debug = False
 
@@ -70,7 +71,7 @@ cam2_exposure, cam2_exposure_auto = 150, 3
 urlcam1 = "http://192.168.137.155:8080/shot.jpg"
 urlcam2 = "http://192.168.137.182:8080/shot.jpg"
 
-fps_cam1 = 30
+fps_cam1 = 15
 fps_cam2 = 15
 
 ### Config Depth ###
@@ -79,7 +80,7 @@ numDisparitiesDepth = 64
 blockSizeDepth = 15
 
 ### Config frame ###
-FramePerProcess = 2
+FramePerProcess = 1
 
 ### Config event mouse ###
 maxFamesClicked = 5
@@ -97,8 +98,10 @@ is_debug_clicked = False
 numEleArgvan = 5
 numAverageMouseMove = 8
 
-time_delay_press = 0.5
-time_delay_right_click = 1.5
+time_delay_press = 0.1
+time_delay_right_click = 0.8
+
+circle_in_right_click = 60
 
 ### Config UI ###
 maxRadiusFigueContour = 10

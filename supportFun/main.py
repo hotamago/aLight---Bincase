@@ -3,6 +3,7 @@ Open library
 """
 import cv2
 import numpy as np
+import math
 
 from pyzbar.pyzbar import decode as detectAndDecodeQR
 from pyzbar.pyzbar import ZBarSymbol
@@ -117,7 +118,8 @@ def auto_ProcessImage(imgCam, maCamYXZ, gamma, fillCam_01, noseCam, on_show_cam,
   
   # cv2.RETR_EXTERNAL - Get outside
   # cv2.RETR_LIST - Get all
-  contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+  # cv2.CHAIN_APPROX_SIMPLE - Get simple
+  contoursFigue, hierarchyFigue = cv2.findContours(imgFigue, cv2.RETR_LIST, cv2.RETR_EXTERNAL)
   
   ### Debug mode ###
   if on_show_cam:
@@ -284,3 +286,6 @@ def decrease_brightness(img, value=30):
   final_hsv = cv2.merge((h, s, v))
   img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
   return img
+
+def distanceB2Points(p0, p1):
+    return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
